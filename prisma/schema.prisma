@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  company   String?
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+  country   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects    Project[]
+  invoices    Invoice[]
+  estimates   Estimate[]
+  clientNotes Note[]
+  todos       Todo[]
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  status      String   @default("active")
+  hourlyRate  Float?
+  fixedPrice  Float?
+  clientId    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client      Client      @relation(fields: [clientId], references: [id])
+  timeEntries TimeEntry[]
+  invoices    Invoice[]
+  estimates   Estimate[]
+  notes       Note[]
+  todos       Todo[]
+}
+
+model TimeEntry {
+  id          Int       @id @default(autoincrement())
+  description String?
+  startTime   DateTime
+  endTime     DateTime?
+  durationMin Int?
+  projectId   Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project     Project   @relation(fields: [projectId], references: [id])
+}
+
+model Invoice {
+  id        Int       @id @default(autoincrement())
+  number    String    @unique
+  status    String    @default("draft")
+  issueDate DateTime  @default(now())
+  dueDate   DateTime?
+  notes     String?
+  clientId  Int
+  projectId Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  client    Client     @relation(fields: [clientId], references: [id])
+  project   Project?   @relation(fields: [projectId], references: [id])
+  lineItems LineItem[]
+}
+
+model Estimate {
+  id         Int       @id @default(autoincrement())
+  number     String    @unique
+  status     String    @default("draft")
+  issueDate  DateTime  @default(now())
+  expiryDate DateTime?
+  notes      String?
+  clientId   Int
+  projectId  Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  client    Client            @relation(fields: [clientId], references: [id])
+  project   Project?          @relation(fields: [projectId], references: [id])
+  lineItems EstimateLineItem[]
+}
+
+model LineItem {
+  id          Int     @id @default(autoincrement())
+  description String
+  quantity    Float   @default(1)
+  unitPrice   Float
+  invoiceId   Int
+
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model EstimateLineItem {
+  id          Int      @id @default(autoincrement())
+  description String
+  quantity    Float    @default(1)
+  unitPrice   Float
+  estimateId  Int
+
+  estimate    Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  content   String
+  clientId  Int?
+  projectId Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client    Client?  @relation(fields: [clientId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
+}
+
+model Todo {
+  id        Int       @id @default(autoincrement())
+  title     String
+  completed Boolean   @default(false)
+  dueDate   DateTime?
+  clientId  Int?
+  projectId Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  client    Client?  @relation(fields: [clientId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
+}
