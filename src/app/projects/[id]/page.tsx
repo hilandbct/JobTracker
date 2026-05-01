@@ -5,13 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, formatDuration } from "@/lib/format";
 import Link from "next/link";
 import { EditProjectButton } from "@/components/edit-project-button";
+import { NewInvoiceButton } from "@/components/new-invoice-button";
 import { NotesPanel } from "@/components/notes-panel";
 import { TodosPanel } from "@/components/todos-panel";
 import { TimeEntriesPanel } from "@/components/time-entries-panel";
 
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [project, clients] = await Promise.all([
+  const [project, clients, allProjects] = await Promise.all([
     prisma.project.findUnique({
       where: { id: Number(id) },
       include: {
@@ -22,6 +23,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       },
     }),
     prisma.client.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    prisma.project.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, clientId: true } }),
   ]);
   if (!project) notFound();
 
@@ -49,6 +51,12 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={project.status === "active" ? "default" : "secondary"}>{project.status}</Badge>
+          <NewInvoiceButton
+            clients={clients}
+            projects={allProjects}
+            defaultClientId={project.clientId}
+            defaultProjectId={project.id}
+          />
           <EditProjectButton project={project} clients={clients} />
         </div>
       </div>

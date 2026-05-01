@@ -15,11 +15,21 @@ type Project = { id: number; name: string; clientId: number };
 
 type LineItem = { description: string; quantity: number; unitPrice: number };
 
-export function NewInvoiceButton({ clients, projects }: { clients: Client[]; projects: Project[] }) {
+export function NewInvoiceButton({
+  clients,
+  projects,
+  defaultClientId,
+  defaultProjectId,
+}: {
+  clients: Client[];
+  projects: Project[];
+  defaultClientId?: number;
+  defaultProjectId?: number;
+}) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [clientId, setClientId] = useState("");
-  const [projectId, setProjectId] = useState("");
+  const [clientId, setClientId] = useState(defaultClientId ? String(defaultClientId) : "");
+  const [projectId, setProjectId] = useState(defaultProjectId ? String(defaultProjectId) : "");
   const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unitPrice: 0 }]);
   const router = useRouter();
 
