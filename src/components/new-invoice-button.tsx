@@ -20,17 +20,20 @@ export function NewInvoiceButton({
   projects,
   defaultClientId,
   defaultProjectId,
+  defaultLineItems,
 }: {
   clients: Client[];
   projects: Project[];
   defaultClientId?: number;
   defaultProjectId?: number;
+  defaultLineItems?: LineItem[];
 }) {
+  const emptyItem: LineItem = { description: "", quantity: 1, unitPrice: 0 };
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [clientId, setClientId] = useState(defaultClientId ? String(defaultClientId) : "");
   const [projectId, setProjectId] = useState(defaultProjectId ? String(defaultProjectId) : "");
-  const [items, setItems] = useState<LineItem[]>([{ description: "", quantity: 1, unitPrice: 0 }]);
+  const [items, setItems] = useState<LineItem[]>(defaultLineItems?.length ? defaultLineItems : [emptyItem]);
   const router = useRouter();
 
   const filteredProjects = projects.filter((p) => !clientId || p.clientId === Number(clientId));
@@ -79,7 +82,7 @@ export function NewInvoiceButton({
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} size="sm" disabled={clients.length === 0}>
+      <Button onClick={() => { setItems(defaultLineItems?.length ? defaultLineItems : [emptyItem]); setOpen(true); }} size="sm" disabled={clients.length === 0}>
         <Plus className="h-4 w-4 mr-1" /> New Invoice
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>

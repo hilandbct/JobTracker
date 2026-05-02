@@ -33,6 +33,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       ? (totalMinutes / 60) * project.hourlyRate
       : null;
 
+  // Build default invoice line items from time entries with a recorded duration
+  const timeLineItems = project.timeEntries
+    .filter((e) => e.durationMin && e.durationMin > 0)
+    .map((e) => ({
+      description: e.description || "Time",
+      quantity: Math.round((e.durationMin! / 60) * 100) / 100,
+      unitPrice: project.hourlyRate ?? 0,
+    }));
+
   return (
     <div className="space-y-5 max-w-4xl">
       <div className="flex items-start justify-between gap-4">
@@ -56,6 +65,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             projects={allProjects}
             defaultClientId={project.clientId}
             defaultProjectId={project.id}
+            defaultLineItems={timeLineItems}
           />
           <EditProjectButton project={project} clients={clients} />
         </div>

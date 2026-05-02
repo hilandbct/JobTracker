@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)"
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --yes)",
+      "Bash(node -e ' *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(sshpass -p 'load,8,1' ssh hiland@192.168.1.143 'cd ~/JobTracker && npm run build 2>&1')",
+      "Bash(sshpass -p load,8,1 rsync -av --exclude node_modules --exclude .next --exclude 'prisma/dev.db*' --exclude .env.local '/Users/hiland/Claude Projects/JobTracker/' hiland@192.168.1.143:/home/hiland/JobTracker/)",
+      "Bash(sshpass -p load,8,1 ssh hiland@192.168.1.143 'sudo systemctl stop jobtracker && cd ~/JobTracker && npm run build 2>&1 | tail -15 && sudo systemctl start jobtracker')"
     ]
   }
 }
