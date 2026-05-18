@@ -112,8 +112,12 @@ export function EstimateActions({ estimate }: { estimate: Estimate }) {
               </div>
               <div className="col-span-2 space-y-1">
                 <Label>Status</Label>
-                <Select value={status} onValueChange={(v) => setStatus(v ?? "")}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={status} onValueChange={(v) => { if (v) setStatus(v); }}>
+                  <SelectTrigger>
+                    <SelectValue>
+                      {(v: string | null) => v ? v.charAt(0).toUpperCase() + v.slice(1) : null}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="sent">Sent</SelectItem>

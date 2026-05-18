@@ -9,7 +9,7 @@ export default async function Dashboard() {
     prisma.client.count(),
     prisma.project.count({ where: { status: "active" } }),
     prisma.invoice.findMany({
-      where: { status: { in: ["sent", "draft"] } },
+      where: { status: { in: ["sent", "draft", "overdue"] } },
       include: { lineItems: true, client: { select: { name: true } } },
       orderBy: { issueDate: "desc" },
       take: 5,
