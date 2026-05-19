@@ -4,6 +4,8 @@ import { formatCurrency } from "@/lib/format";
 import Link from "next/link";
 import { Users, FolderOpen, Clock, FileText } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function Dashboard() {
   const [clientCount, projectCount, openInvoices, recentTime, openTodoCount] = await Promise.all([
     prisma.client.count(),

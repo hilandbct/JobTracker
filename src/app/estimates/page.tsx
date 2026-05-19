@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { NewEstimateButton } from "@/components/new-estimate-button";
 
+export const dynamic = "force-dynamic";
+
 const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   draft: "outline",
   sent: "secondary",
