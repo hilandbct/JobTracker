@@ -61,7 +61,8 @@ export function TimeEntriesPanel({
     const hours = Number(fd.get("hours") || 0);
     const minutes = Number(fd.get("minutes") || 0);
     const durationMin = hours * 60 + minutes;
-    const startTime = fd.get("date") ? new Date(fd.get("date") as string) : new Date();
+    // Parse as local midnight — "YYYY-MM-DD" alone is treated as UTC by the JS spec
+    const startTime = fd.get("date") ? new Date((fd.get("date") as string) + "T00:00:00") : new Date();
     const res = await fetch("/api/time-entries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -156,7 +157,7 @@ export function TimeEntriesPanel({
             </div>
             <div className="space-y-1">
               <Label htmlFor="date">Date</Label>
-              <Input id="date" name="date" type="date" defaultValue={new Date().toISOString().split("T")[0]} />
+              <Input id="date" name="date" type="date" defaultValue={new Date().toLocaleDateString("en-CA")} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
