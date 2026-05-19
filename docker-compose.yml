@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    command: node ./dbsetup.js npm run start
+    ports:
+      - "3000:3000"
+    volumes:
+      - jobtracker_data:/data
+    env_file:
+      - .env.local
+    environment:
+      - DATABASE_URL=file:/data/jobtracker.db
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  jobtracker_data:

@@ -9,7 +9,11 @@ A self-hosted freelance business management app for tracking clients, projects, 
 - **Time Tracking** — log hours against projects, view totals
 - **Invoices** — line items, status workflow (draft → sent → paid / overdue), PDF export
 - **Estimates** — line items, status workflow (draft → sent → accepted / declined), PDF export
-- **Dashboard** — revenue summary, recent activity
+- **Reports** — revenue by month, revenue by client, hours and earnings breakdown
+- **Dashboard** — outstanding invoices, recent time entries, quick-log time widget
+- **Client Portal** — generate a shareable link so clients can view their invoice without logging in
+- **Invoice Aging** — at-a-glance overdue / due-today labels on invoices and dashboard
+- **Business Settings** — store your name, address, email, phone, and payment terms; they appear on every PDF
 - **Themes** — Light, Dark, Ocean, Warm (persisted in localStorage, no flash on load)
 - **Password Auth** — single-password login with secure httpOnly cookie sessions
 - **Logo support** — drop in your own `public/logo-black.png` and it appears in the sidebar, invoices, and estimates
@@ -97,6 +101,30 @@ public/logo-black.png
 It will automatically appear in the sidebar, on invoice/estimate pages, and in PDF exports. If no logo is present, the app name is shown as text instead.
 
 The `public/logo-black.png` path is in `.gitignore` — your logo won't be accidentally committed.
+
+## Docker / Self-Hosted (one command)
+
+The easiest way to run JobTracker on any machine with Docker installed:
+
+```bash
+# 1. Copy the example env file and fill in your values
+cp .env.example .env.local
+
+# 2. Start
+docker compose up -d
+```
+
+The app will be available at [http://localhost:3000](http://localhost:3000).
+
+Data is persisted in a Docker volume (`jobtracker_data`) so it survives container restarts and upgrades.
+
+To upgrade to a new version:
+
+```bash
+git pull
+docker compose build --no-cache
+docker compose up -d
+```
 
 ## Production Build
 
