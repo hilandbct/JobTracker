@@ -19,8 +19,20 @@ const s = StyleSheet.create({
   notes: { marginTop: 32, paddingTop: 12, borderTop: "0.5 solid #ddd" },
 });
 
+type BizInfo = {
+  biz_name?: string;
+  biz_email?: string;
+  biz_phone?: string;
+  biz_address?: string;
+  biz_city?: string;
+  biz_state?: string;
+  biz_zip?: string;
+  biz_payment_terms?: string;
+};
+
 type Props = {
   logoPath?: string;
+  bizInfo?: BizInfo;
   invoice: {
     number: string;
     status: string;
@@ -41,7 +53,7 @@ type Props = {
   };
 };
 
-export function InvoicePDF({ invoice, logoPath }: Props) {
+export function InvoicePDF({ invoice, logoPath, bizInfo }: Props) {
   const total = invoice.lineItems.reduce((s, li) => s + li.quantity * li.unitPrice, 0);
 
   return (
@@ -49,17 +61,15 @@ export function InvoicePDF({ invoice, logoPath }: Props) {
       <Page size="LETTER" style={s.page}>
         <View style={s.header}>
           <View>
-            {logoPath && <Image src={logoPath} style={{ width: 48, height: 48, marginBottom: 12 }} />}
-            <Text style={s.title}>INVOICE</Text>
-            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11 }}>{invoice.client.name}</Text>
-            {invoice.client.company && <Text style={{ color: "#666" }}>{invoice.client.company}</Text>}
-            {invoice.client.address && <Text style={{ color: "#666" }}>{invoice.client.address}</Text>}
-            {(invoice.client.city || invoice.client.state) && (
-              <Text style={{ color: "#666" }}>
-                {[invoice.client.city, invoice.client.state, invoice.client.zip].filter(Boolean).join(", ")}
-              </Text>
+            {logoPath && <Image src={logoPath} style={{ width: 48, height: 48, marginBottom: 8 }} />}
+            {bizInfo?.biz_name && <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 13, marginBottom: 2 }}>{bizInfo.biz_name}</Text>}
+            {bizInfo?.biz_address && <Text style={s.label}>{bizInfo.biz_address}</Text>}
+            {(bizInfo?.biz_city || bizInfo?.biz_state) && (
+              <Text style={s.label}>{[bizInfo.biz_city, bizInfo.biz_state, bizInfo.biz_zip].filter(Boolean).join(", ")}</Text>
             )}
-            {invoice.client.email && <Text style={{ color: "#666", marginTop: 4 }}>{invoice.client.email}</Text>}
+            {bizInfo?.biz_email && <Text style={s.label}>{bizInfo.biz_email}</Text>}
+            {bizInfo?.biz_phone && <Text style={s.label}>{bizInfo.biz_phone}</Text>}
+            <Text style={{ ...s.title, marginTop: 16 }}>INVOICE</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
             <Text style={s.label}>Invoice #</Text>
@@ -72,6 +82,14 @@ export function InvoicePDF({ invoice, logoPath }: Props) {
                 <Text>{formatDate(invoice.dueDate)}</Text>
               </>
             )}
+            <Text style={{ ...s.label, marginTop: 16 }}>Bill To</Text>
+            <Text style={{ fontFamily: "Helvetica-Bold" }}>{invoice.client.name}</Text>
+            {invoice.client.company && <Text style={s.label}>{invoice.client.company}</Text>}
+            {invoice.client.address && <Text style={s.label}>{invoice.client.address}</Text>}
+            {(invoice.client.city || invoice.client.state) && (
+              <Text style={s.label}>{[invoice.client.city, invoice.client.state, invoice.client.zip].filter(Boolean).join(", ")}</Text>
+            )}
+            {invoice.client.email && <Text style={s.label}>{invoice.client.email}</Text>}
           </View>
         </View>
 
@@ -100,6 +118,13 @@ export function InvoicePDF({ invoice, logoPath }: Props) {
           <View style={s.notes}>
             <Text style={{ fontFamily: "Helvetica-Bold", marginBottom: 4 }}>Notes</Text>
             <Text style={{ color: "#444" }}>{invoice.notes}</Text>
+          </View>
+        )}
+
+        {bizInfo?.biz_payment_terms && (
+          <View style={s.notes}>
+            <Text style={{ fontFamily: "Helvetica-Bold", marginBottom: 4 }}>Payment Terms</Text>
+            <Text style={{ color: "#444" }}>{bizInfo.biz_payment_terms}</Text>
           </View>
         )}
       </Page>

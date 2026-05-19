@@ -63,16 +63,17 @@ model TimeEntry {
 }
 
 model Invoice {
-  id        Int       @id @default(autoincrement())
-  number    String    @unique
-  status    String    @default("draft")
-  issueDate DateTime  @default(now())
-  dueDate   DateTime?
-  notes     String?
-  clientId  Int
-  projectId Int?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  number      String    @unique
+  status      String    @default("draft")
+  issueDate   DateTime  @default(now())
+  dueDate     DateTime?
+  notes       String?
+  portalToken String?   @unique
+  clientId    Int
+  projectId   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   client    Client     @relation(fields: [clientId], references: [id])
   project   Project?   @relation(fields: [projectId], references: [id])
@@ -114,6 +115,11 @@ model EstimateLineItem {
   estimateId  Int
 
   estimate    Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+}
+
+model Setting {
+  key   String @id
+  value String
 }
 
 model Note {

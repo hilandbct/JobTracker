@@ -18,8 +18,20 @@ const s = StyleSheet.create({
   notes: { marginTop: 32, paddingTop: 12, borderTop: "0.5 solid #ddd" },
 });
 
+type BizInfo = {
+  biz_name?: string;
+  biz_email?: string;
+  biz_phone?: string;
+  biz_address?: string;
+  biz_city?: string;
+  biz_state?: string;
+  biz_zip?: string;
+  biz_payment_terms?: string;
+};
+
 type Props = {
   logoPath?: string;
+  bizInfo?: BizInfo;
   estimate: {
     number: string;
     status: string;
@@ -40,7 +52,7 @@ type Props = {
   };
 };
 
-export function EstimatePDF({ estimate, logoPath }: Props) {
+export function EstimatePDF({ estimate, logoPath, bizInfo }: Props) {
   const total = estimate.lineItems.reduce((s, li) => s + li.quantity * li.unitPrice, 0);
 
   return (
@@ -48,17 +60,15 @@ export function EstimatePDF({ estimate, logoPath }: Props) {
       <Page size="LETTER" style={s.page}>
         <View style={s.header}>
           <View>
-            {logoPath && <Image src={logoPath} style={{ width: 48, height: 48, marginBottom: 12 }} />}
-            <Text style={s.title}>ESTIMATE</Text>
-            <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 11 }}>{estimate.client.name}</Text>
-            {estimate.client.company && <Text style={{ color: "#666" }}>{estimate.client.company}</Text>}
-            {estimate.client.address && <Text style={{ color: "#666" }}>{estimate.client.address}</Text>}
-            {(estimate.client.city || estimate.client.state) && (
-              <Text style={{ color: "#666" }}>
-                {[estimate.client.city, estimate.client.state, estimate.client.zip].filter(Boolean).join(", ")}
-              </Text>
+            {logoPath && <Image src={logoPath} style={{ width: 48, height: 48, marginBottom: 8 }} />}
+            {bizInfo?.biz_name && <Text style={{ fontFamily: "Helvetica-Bold", fontSize: 13, marginBottom: 2 }}>{bizInfo.biz_name}</Text>}
+            {bizInfo?.biz_address && <Text style={s.label}>{bizInfo.biz_address}</Text>}
+            {(bizInfo?.biz_city || bizInfo?.biz_state) && (
+              <Text style={s.label}>{[bizInfo.biz_city, bizInfo.biz_state, bizInfo.biz_zip].filter(Boolean).join(", ")}</Text>
             )}
-            {estimate.client.email && <Text style={{ color: "#666", marginTop: 4 }}>{estimate.client.email}</Text>}
+            {bizInfo?.biz_email && <Text style={s.label}>{bizInfo.biz_email}</Text>}
+            {bizInfo?.biz_phone && <Text style={s.label}>{bizInfo.biz_phone}</Text>}
+            <Text style={{ ...s.title, marginTop: 16 }}>ESTIMATE</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
             <Text style={s.label}>Estimate #</Text>
@@ -71,6 +81,14 @@ export function EstimatePDF({ estimate, logoPath }: Props) {
                 <Text>{formatDate(estimate.expiryDate)}</Text>
               </>
             )}
+            <Text style={{ ...s.label, marginTop: 16 }}>Bill To</Text>
+            <Text style={{ fontFamily: "Helvetica-Bold" }}>{estimate.client.name}</Text>
+            {estimate.client.company && <Text style={s.label}>{estimate.client.company}</Text>}
+            {estimate.client.address && <Text style={s.label}>{estimate.client.address}</Text>}
+            {(estimate.client.city || estimate.client.state) && (
+              <Text style={s.label}>{[estimate.client.city, estimate.client.state, estimate.client.zip].filter(Boolean).join(", ")}</Text>
+            )}
+            {estimate.client.email && <Text style={s.label}>{estimate.client.email}</Text>}
           </View>
         </View>
 
@@ -99,6 +117,13 @@ export function EstimatePDF({ estimate, logoPath }: Props) {
           <View style={s.notes}>
             <Text style={{ fontFamily: "Helvetica-Bold", marginBottom: 4 }}>Notes</Text>
             <Text style={{ color: "#444" }}>{estimate.notes}</Text>
+          </View>
+        )}
+
+        {bizInfo?.biz_payment_terms && (
+          <View style={s.notes}>
+            <Text style={{ fontFamily: "Helvetica-Bold", marginBottom: 4 }}>Payment Terms</Text>
+            <Text style={{ color: "#444" }}>{bizInfo.biz_payment_terms}</Text>
           </View>
         )}
       </Page>

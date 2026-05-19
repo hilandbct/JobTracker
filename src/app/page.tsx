@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, agingLabel } from "@/lib/format";
 import Link from "next/link";
 import { Users, FolderOpen, Clock, FileText } from "lucide-react";
+import { QuickTimeWidget } from "@/components/quick-time-widget";
 
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
-  const [clientCount, projectCount, openInvoices, recentTime, openTodoCount] = await Promise.all([
+  const [clientCount, projectCount, openInvoices, recentTime, openTodoCount, activeProjects] = await Promise.all([
     prisma.client.count(),
     prisma.project.count({ where: { status: "active" } }),
     prisma.invoice.findMany({
@@ -22,6 +23,7 @@ export default async function Dashboard() {
       include: { project: { select: { name: true, client: { select: { name: true } } } } },
     }),
     prisma.todo.count({ where: { completed: false } }),
+    prisma.project.findMany({ where: { status: "active" }, orderBy: { name: "asc" }, include: { client: { select: { name: true } } } }),
   ]);
 
   const invoiceTotal = openInvoices.reduce((sum, inv) => {
@@ -51,6 +53,7 @@ export default async function Dashboard() {
               <ul className="divide-y divide-border -mx-1">
                 {openInvoices.map((inv) => {
                   const total = inv.lineItems.reduce((s, li) => s + li.quantity * li.unitPrice, 0);
+                  const aging = agingLabel(inv.dueDate, inv.status);
                   return (
                     <li key={inv.id} className="flex justify-between items-center text-sm gap-2 py-2.5 px-1">
                       <Link href={`/invoices/${inv.id}`} className="hover:underline font-medium shrink-0">
@@ -58,6 +61,11 @@ export default async function Dashboard() {
                       </Link>
                       <span className="text-muted-foreground truncate flex-1">{inv.client.name}</span>
                       <span className="shrink-0 tabular-nums font-medium">{formatCurrency(total)}</span>
+                      {aging && (
+                        <span className={`text-xs shrink-0 ${aging.includes("overdue") ? "text-destructive" : aging === "Due today" ? "text-amber-600" : "text-muted-foreground"}`}>
+                          {aging}
+                        </span>
+                      )}
                     </li>
                   );
                 })}
@@ -89,6 +97,15 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Log Time</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <QuickTimeWidget projects={activeProjects} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

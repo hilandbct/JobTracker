@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Pencil, Trash2, Plus } from "lucide-react";
+import { Download, Pencil, Trash2, Plus, Link2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -31,7 +31,17 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(invoice.status);
   const [items, setItems] = useState<Omit<LineItem, "id">[]>(invoice.lineItems);
+  const [linkCopied, setLinkCopied] = useState(false);
   const router = useRouter();
+
+  async function handleShareLink() {
+    const res = await fetch(`/api/invoices/${invoice.id}/portal-token`, { method: "POST" });
+    const { token } = await res.json();
+    const url = `${window.location.origin}/portal/invoice/${token}`;
+    await navigator.clipboard.writeText(url);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
 
   function updateItem(i: number, field: string, value: string | number) {
     setItems(items.map((item, idx) => idx === i ? { ...item, [field]: value } : item));
@@ -82,6 +92,9 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
       >
         <Download className="h-3.5 w-3.5 mr-1" /> PDF
       </a>
+      <Button variant="outline" size="sm" onClick={handleShareLink}>
+        <Link2 className="h-3.5 w-3.5 mr-1" /> {linkCopied ? "Link Copied!" : "Share Link"}
+      </Button>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         <Pencil className="h-3.5 w-3.5 mr-1" /> Edit
       </Button>

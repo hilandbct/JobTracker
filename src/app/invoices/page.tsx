@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, agingLabel } from "@/lib/format";
 import { NewInvoiceButton } from "@/components/new-invoice-button";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +40,7 @@ export default async function InvoicesPage() {
         <div className="rounded-lg border divide-y">
           {invoices.map((inv) => {
             const total = inv.lineItems.reduce((s, li) => s + li.quantity * li.unitPrice, 0);
+            const aging = agingLabel(inv.dueDate, inv.status);
             return (
               <Link key={inv.id} href={`/invoices/${inv.id}`}>
                 <div className="flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer gap-3">
@@ -49,6 +50,11 @@ export default async function InvoicesPage() {
                   </div>
                   <span className="text-sm text-muted-foreground shrink-0">{formatDate(inv.issueDate)}</span>
                   <span className="font-medium shrink-0">{formatCurrency(total)}</span>
+                  {aging && (
+                    <span className={`text-xs shrink-0 ${aging.includes("overdue") ? "text-destructive" : aging === "Due today" ? "text-amber-600" : "text-muted-foreground"}`}>
+                      {aging}
+                    </span>
+                  )}
                   <Badge variant={statusVariant[inv.status] ?? "outline"} className="shrink-0">{inv.status}</Badge>
                 </div>
               </Link>

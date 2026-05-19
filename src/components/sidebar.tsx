@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, FolderOpen, Clock, FileText, ClipboardList, LayoutDashboard, LogOut } from "lucide-react";
+import { Users, FolderOpen, Clock, FileText, ClipboardList, LayoutDashboard, LogOut, BarChart2, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -13,6 +13,8 @@ const nav = [
   { href: "/time", label: "Time", icon: Clock },
   { href: "/invoices", label: "Invoices", icon: FileText },
   { href: "/estimates", label: "Estimates", icon: ClipboardList },
+  { href: "/reports", label: "Reports", icon: BarChart2 },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 type Theme = "light" | "dark" | "theme-ocean" | "theme-warm";

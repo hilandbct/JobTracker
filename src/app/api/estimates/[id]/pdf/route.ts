@@ -7,15 +7,19 @@ import path from "path";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const estimate = await prisma.estimate.findUnique({
-    where: { id: Number(id) },
-    include: { client: true, project: { select: { name: true } }, lineItems: true },
-  });
+  const [estimate, settingsRows] = await Promise.all([
+    prisma.estimate.findUnique({
+      where: { id: Number(id) },
+      include: { client: true, project: { select: { name: true } }, lineItems: true },
+    }),
+    prisma.setting.findMany(),
+  ]);
   if (!estimate) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const bizInfo = Object.fromEntries(settingsRows.map(r => [r.key, r.value]));
   const logoPath = path.join(process.cwd(), "public", "logo-black.png");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buffer = await renderToBuffer(React.createElement(EstimatePDF, { estimate, logoPath }) as any);
+  const buffer = await renderToBuffer(React.createElement(EstimatePDF, { estimate, logoPath, bizInfo }) as any);
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

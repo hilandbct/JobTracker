@@ -32,3 +32,15 @@ export function nextEstimateNumber(last: string | null): string {
   const n = parseInt(last.replace(/\D/g, ""), 10);
   return `EST-${String(n + 1).padStart(4, "0")}`;
 }
+
+export function agingLabel(dueDate: Date | string | null, status: string): string | null {
+  if (!dueDate || status === "paid") return null;
+  const due = new Date(dueDate);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  due.setHours(0,0,0,0);
+  const days = Math.round((today.getTime() - due.getTime()) / 86400000);
+  if (days > 0) return `${days}d overdue`;
+  if (days === 0) return "Due today";
+  return `Due in ${-days}d`;
+}
