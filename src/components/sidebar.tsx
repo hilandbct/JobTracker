@@ -53,8 +53,9 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-52 shrink-0 border-r bg-muted/30 flex flex-col">
-      <div className="px-4 py-4 border-b">
+    <aside className="w-56 shrink-0 border-r bg-sidebar flex flex-col">
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-sidebar-border">
         {!logoError ? (
           <img
             src="/logo-black.png"
@@ -63,51 +64,53 @@ export function Sidebar() {
             onError={() => setLogoError(true)}
           />
         ) : (
-          <span className="font-semibold text-base tracking-tight">{appName}</span>
+          <span className="font-semibold text-[15px] tracking-tight">{appName}</span>
         )}
       </div>
 
-      <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {nav.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-              pathname === href || (href !== "/" && pathname.startsWith(href))
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0" />
-            {label}
-          </Link>
-        ))}
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
+        {nav.map(({ href, label, icon: Icon }) => {
+          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-[13.5px] font-medium transition-colors",
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent"
+              )}
+            >
+              <Icon className={cn("h-4 w-4 shrink-0", active ? "opacity-90" : "opacity-70")} />
+              {label}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="px-4 py-3 border-t space-y-3">
-        {/* Theme switcher */}
-        <div className="flex items-center gap-1.5">
+      {/* Bottom */}
+      <div className="px-3 py-4 border-t border-sidebar-border space-y-3">
+        <div className="flex items-center gap-2 px-3">
           {themes.map((t) => (
             <button
               key={t.id}
               title={t.label}
               onClick={() => applyTheme(t.id)}
               className={cn(
-                "h-5 w-5 rounded-full transition-all",
+                "h-4 w-4 rounded-full transition-all",
                 t.bg,
-                theme === t.id ? `ring-2 ring-offset-1 ${t.ring}` : "opacity-60 hover:opacity-100"
+                theme === t.id ? `ring-2 ring-offset-1 ${t.ring}` : "opacity-50 hover:opacity-100"
               )}
             />
           ))}
         </div>
-
-        {/* Sign out */}
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-[13.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <LogOut className="h-4 w-4 shrink-0 opacity-70" />
           Sign out
         </button>
       </div>
