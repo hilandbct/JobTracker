@@ -116,13 +116,6 @@ export function TimeEntriesPanel({
         </p>
       )}
 
-      {totalMinutes > 0 && (
-        <div className="flex gap-4 text-sm text-muted-foreground">
-          <span>Total: {formatDuration(totalMinutes)}</span>
-          {hourlyRate && <span>Earned: {formatCurrency((totalMinutes / 60) * hourlyRate)}</span>}
-        </div>
-      )}
-
       {entries.length === 0 ? (
         <p className="text-sm text-muted-foreground">No time entries yet.</p>
       ) : (

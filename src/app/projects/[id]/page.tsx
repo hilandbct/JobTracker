@@ -51,13 +51,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           <Link href={`/clients/${project.clientId}`} className="text-muted-foreground hover:underline text-sm">
             {project.client.name}
           </Link>
-          {project.description && <p className="text-sm mt-1">{project.description}</p>}
-          <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
-            {project.hourlyRate && <span>{formatCurrency(project.hourlyRate)}/hr</span>}
-            {project.fixedPrice && <span>{formatCurrency(project.fixedPrice)} fixed</span>}
-            {totalMinutes > 0 && <span>{formatDuration(totalMinutes)} logged</span>}
-            {totalEarned && <span>{formatCurrency(totalEarned)} earned</span>}
-          </div>
+          {project.description && <p className="text-sm mt-1 text-muted-foreground">{project.description}</p>}
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={project.status === "active" ? "default" : "secondary"}>{project.status}</Badge>
@@ -70,6 +64,27 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
           />
           <EditProjectButton project={project} clients={clients} />
         </div>
+      </div>
+
+      <div className={`grid gap-3 ${(project.hourlyRate || project.fixedPrice) ? "grid-cols-3" : "grid-cols-1 max-w-[200px]"}`}>
+        {(project.hourlyRate || project.fixedPrice) && (
+          <div className="rounded-xl border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">{project.fixedPrice ? "Fixed Price" : "Rate"}</p>
+            <p className="text-xl font-semibold tabular-nums">
+              {project.fixedPrice ? formatCurrency(project.fixedPrice) : `${formatCurrency(project.hourlyRate!)}/hr`}
+            </p>
+          </div>
+        )}
+        <div className="rounded-xl border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">Time Logged</p>
+          <p className="text-xl font-semibold tabular-nums">{totalMinutes > 0 ? formatDuration(totalMinutes) : "—"}</p>
+        </div>
+        {(project.hourlyRate || project.fixedPrice) && (
+          <div className="rounded-xl border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">Earned</p>
+            <p className="text-xl font-semibold tabular-nums">{totalEarned ? formatCurrency(totalEarned) : "—"}</p>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="time">
