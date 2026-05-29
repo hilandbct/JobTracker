@@ -48,7 +48,7 @@ export function EstimateActions({ estimate }: { estimate: Estimate }) {
       issueDate: fd.get("issueDate"),
       expiryDate: fd.get("expiryDate") || null,
       notes: fd.get("notes") || null,
-      lineItems: items.filter((li) => li.description.trim()),
+      lineItems: items.filter((li) => li.description.trim()).map(({ description, quantity, unitPrice }) => ({ description, quantity, unitPrice })),
     };
     await fetch(`/api/estimates/${estimate.id}`, {
       method: "PATCH",

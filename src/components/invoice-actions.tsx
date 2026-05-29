@@ -58,7 +58,7 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
       issueDate: fd.get("issueDate"),
       dueDate: fd.get("dueDate") || null,
       notes: fd.get("notes") || null,
-      lineItems: items.filter((li) => li.description.trim()),
+      lineItems: items.filter((li) => li.description.trim()).map(({ description, quantity, unitPrice }) => ({ description, quantity, unitPrice })),
     };
     await fetch(`/api/invoices/${invoice.id}`, {
       method: "PATCH",
