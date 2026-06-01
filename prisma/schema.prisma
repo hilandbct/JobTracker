@@ -55,6 +55,7 @@ model TimeEntry {
   startTime   DateTime
   endTime     DateTime?
   durationMin Int?
+  billed      Boolean   @default(false)
   projectId   Int
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

@@ -29,14 +29,19 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   if (!project) notFound();
 
   const totalMinutes = project.timeEntries.reduce((s, e) => s + (e.durationMin ?? 0), 0);
+  const unbilledMinutes = project.timeEntries.filter((e) => !e.billed).reduce((s, e) => s + (e.durationMin ?? 0), 0);
   const totalEarned =
     project.hourlyRate && totalMinutes > 0
       ? (totalMinutes / 60) * project.hourlyRate
       : null;
+  const unbilledEarned =
+    project.hourlyRate && unbilledMinutes > 0
+      ? (unbilledMinutes / 60) * project.hourlyRate
+      : null;
 
-  // Build default invoice line items from time entries with a recorded duration
+  // Build default invoice line items from unbilled time entries only
   const timeLineItems = project.timeEntries
-    .filter((e) => e.durationMin && e.durationMin > 0)
+    .filter((e) => e.durationMin && e.durationMin > 0 && !e.billed)
     .map((e) => ({
       description: e.description || "Time",
       quantity: Math.round((e.durationMin! / 60) * 100) / 100,
@@ -78,11 +83,23 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         <div className="rounded-xl border bg-card px-4 py-3">
           <p className="text-xs text-muted-foreground mb-1">Time Logged</p>
           <p className="text-xl font-semibold tabular-nums">{totalMinutes > 0 ? formatDuration(totalMinutes) : "—"}</p>
+          {unbilledMinutes < totalMinutes && unbilledMinutes > 0 && (
+            <p className="text-xs text-muted-foreground mt-0.5">{formatDuration(unbilledMinutes)} unbilled</p>
+          )}
+          {unbilledMinutes === 0 && totalMinutes > 0 && (
+            <p className="text-xs text-emerald-600 mt-0.5">All billed</p>
+          )}
         </div>
         {(project.hourlyRate || project.fixedPrice) && (
           <div className="rounded-xl border bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">Earned</p>
             <p className="text-xl font-semibold tabular-nums">{totalEarned ? formatCurrency(totalEarned) : "—"}</p>
+            {unbilledEarned && unbilledEarned < totalEarned! && (
+              <p className="text-xs text-muted-foreground mt-0.5">{formatCurrency(unbilledEarned)} unbilled</p>
+            )}
+            {!unbilledEarned && totalEarned && (
+              <p className="text-xs text-emerald-600 mt-0.5">All billed</p>
+            )}
           </div>
         )}
       </div>

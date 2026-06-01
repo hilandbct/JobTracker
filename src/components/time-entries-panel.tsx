@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { formatDate, formatDuration, formatCurrency } from "@/lib/format";
-import { Plus, Trash2, Play, Square } from "lucide-react";
+import { Plus, Trash2, Play, Square, Receipt } from "lucide-react";
 
 type Entry = {
   id: number;
@@ -14,6 +14,7 @@ type Entry = {
   startTime: Date | string;
   endTime: Date | string | null;
   durationMin: number | null;
+  billed: boolean;
 };
 
 export function TimeEntriesPanel({
@@ -61,7 +62,6 @@ export function TimeEntriesPanel({
     const hours = Number(fd.get("hours") || 0);
     const minutes = Number(fd.get("minutes") || 0);
     const durationMin = hours * 60 + minutes;
-    // Parse as local midnight — "YYYY-MM-DD" alone is treated as UTC by the JS spec
     const startTime = fd.get("date") ? new Date((fd.get("date") as string) + "T00:00:00") : new Date();
     const res = await fetch("/api/time-entries", {
       method: "POST",
@@ -83,7 +83,18 @@ export function TimeEntriesPanel({
     setEntries(entries.filter((e) => e.id !== id));
   }
 
-  const totalMinutes = entries.reduce((s, e) => s + (e.durationMin ?? 0), 0);
+  async function toggleBilled(id: number, current: boolean) {
+    const res = await fetch(`/api/time-entries/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ billed: !current }),
+    });
+    const updated = await res.json();
+    setEntries(entries.map((e) => (e.id === id ? { ...e, billed: updated.billed } : e)));
+  }
+
+  const unbilledMinutes = entries.filter((e) => !e.billed).reduce((s, e) => s + (e.durationMin ?? 0), 0);
+  const billedMinutes = entries.filter((e) => e.billed).reduce((s, e) => s + (e.durationMin ?? 0), 0);
 
   return (
     <div className="space-y-3">
@@ -119,25 +130,61 @@ export function TimeEntriesPanel({
       {entries.length === 0 ? (
         <p className="text-sm text-muted-foreground">No time entries yet.</p>
       ) : (
-        <ul className="space-y-1">
-          {entries.map((entry) => (
-            <li key={entry.id} className="flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/40 group text-sm gap-2">
-              <span className="flex-1 truncate">{entry.description || <span className="text-muted-foreground italic">no description</span>}</span>
-              <span className="text-muted-foreground shrink-0">{formatDate(entry.startTime)}</span>
-              <span className="font-medium shrink-0 w-16 text-right">
-                {entry.durationMin ? formatDuration(entry.durationMin) : "—"}
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive shrink-0"
-                onClick={() => deleteEntry(entry.id)}
+        <>
+          <ul className="space-y-1">
+            {entries.map((entry) => (
+              <li
+                key={entry.id}
+                className={`flex items-center justify-between py-2 px-3 rounded-md hover:bg-muted/40 group text-sm gap-2 ${entry.billed ? "opacity-50" : ""}`}
               >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </li>
-          ))}
-        </ul>
+                <span className="flex-1 truncate">
+                  {entry.description || <span className="italic">no description</span>}
+                </span>
+                <span className="text-muted-foreground shrink-0">{formatDate(entry.startTime)}</span>
+                <span className="font-medium shrink-0 w-16 text-right">
+                  {entry.durationMin ? formatDuration(entry.durationMin) : "—"}
+                </span>
+                <button
+                  title={entry.billed ? "Mark as unbilled" : "Mark as billed"}
+                  onClick={() => toggleBilled(entry.id, entry.billed)}
+                  className={`shrink-0 flex items-center gap-1 text-xs rounded-full px-2 py-0.5 border transition-colors ${
+                    entry.billed
+                      ? "border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100"
+                      : "border-transparent text-muted-foreground opacity-0 group-hover:opacity-100 hover:border-border hover:bg-muted"
+                  }`}
+                >
+                  <Receipt className="h-3 w-3" />
+                  {entry.billed ? "Billed" : "Bill"}
+                </button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive shrink-0"
+                  onClick={() => deleteEntry(entry.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+
+          {(billedMinutes > 0 || unbilledMinutes > 0) && (
+            <div className="flex gap-4 text-xs text-muted-foreground pt-1 border-t">
+              {unbilledMinutes > 0 && (
+                <span>
+                  Unbilled: <span className="font-medium text-foreground">{formatDuration(unbilledMinutes)}</span>
+                  {hourlyRate ? ` (${formatCurrency((unbilledMinutes / 60) * hourlyRate)})` : ""}
+                </span>
+              )}
+              {billedMinutes > 0 && (
+                <span>
+                  Billed: <span className="font-medium text-foreground">{formatDuration(billedMinutes)}</span>
+                  {hourlyRate ? ` (${formatCurrency((billedMinutes / 60) * hourlyRate)})` : ""}
+                </span>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
