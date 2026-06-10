@@ -40,13 +40,13 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
       : null;
 
   // Build default invoice line items from unbilled time entries only
-  const timeLineItems = project.timeEntries
-    .filter((e) => e.durationMin && e.durationMin > 0 && !e.billed)
-    .map((e) => ({
-      description: e.description || "Time",
-      quantity: Math.round((e.durationMin! / 60) * 100) / 100,
-      unitPrice: project.hourlyRate ?? 0,
-    }));
+  const unbilledEntries = project.timeEntries.filter((e) => e.durationMin && e.durationMin > 0 && !e.billed);
+  const timeLineItems = unbilledEntries.map((e) => ({
+    description: e.description || "Time",
+    quantity: Math.round((e.durationMin! / 60) * 100) / 100,
+    unitPrice: project.hourlyRate ?? 0,
+  }));
+  const unbilledEntryIds = unbilledEntries.map((e) => e.id);
 
   return (
     <div className="space-y-5 max-w-4xl">
@@ -66,6 +66,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
             defaultClientId={project.clientId}
             defaultProjectId={project.id}
             defaultLineItems={timeLineItems}
+            timeEntryIds={unbilledEntryIds}
           />
           <EditProjectButton project={project} clients={clients} />
         </div>

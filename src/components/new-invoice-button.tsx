@@ -21,12 +21,14 @@ export function NewInvoiceButton({
   defaultClientId,
   defaultProjectId,
   defaultLineItems,
+  timeEntryIds,
 }: {
   clients: Client[];
   projects: Project[];
   defaultClientId?: number;
   defaultProjectId?: number;
   defaultLineItems?: LineItem[];
+  timeEntryIds?: number[];
 }) {
   const emptyItem: LineItem = { description: "", quantity: 1, unitPrice: 0 };
   const [open, setOpen] = useState(false);
@@ -65,6 +67,8 @@ export function NewInvoiceButton({
       dueDate: fd.get("dueDate") || null,
       notes: fd.get("notes") || null,
       lineItems: items.filter((li) => li.description.trim()),
+      // Mark the source time entries billed once they're on an invoice
+      timeEntryIds: timeEntryIds?.length ? timeEntryIds : undefined,
     };
     const res = await fetch("/api/invoices", {
       method: "POST",

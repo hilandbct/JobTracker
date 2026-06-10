@@ -20,14 +20,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const data = await req.json();
   const { lineItems, ...rest } = data;
 
-  await prisma.estimateLineItem.deleteMany({ where: { estimateId: Number(id) } });
+  // Only replace line items when the request actually includes them —
+  // a status-only PATCH must not touch line items
+  if (lineItems) {
+    await prisma.estimateLineItem.deleteMany({ where: { estimateId: Number(id) } });
+  }
 
   const estimate = await prisma.estimate.update({
     where: { id: Number(id) },
     data: {
       ...rest,
       issueDate: rest.issueDate ? new Date(rest.issueDate) : undefined,
-      expiryDate: rest.expiryDate ? new Date(rest.expiryDate) : null,
+      expiryDate: rest.expiryDate === undefined ? undefined : rest.expiryDate ? new Date(rest.expiryDate) : null,
       lineItems: lineItems ? { create: lineItems } : undefined,
     },
     include: {

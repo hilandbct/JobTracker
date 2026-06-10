@@ -38,6 +38,7 @@ yarn-error.log*
 *.db
 *.db-shm
 *.db-wal
+*.db-journal
 
 # user logo (add your own public/logo-black.png)
 public/logo-black.png

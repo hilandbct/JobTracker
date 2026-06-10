@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/sidebar";
+import { CommandPalette } from "@/components/command-palette";
 
 const inter = Inter({ variable: "--font-sans", subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="h-full flex bg-background text-foreground">
         <Sidebar />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <CommandPalette />
       </body>
     </html>
   );

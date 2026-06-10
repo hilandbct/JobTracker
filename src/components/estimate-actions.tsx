@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Pencil, Trash2, Plus } from "lucide-react";
+import { Download, Pencil, Trash2, Plus, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -29,9 +29,37 @@ type Estimate = {
 export function EstimateActions({ estimate }: { estimate: Estimate }) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [status, setStatus] = useState(estimate.status);
   const [items, setItems] = useState<Omit<LineItem, "id">[]>(estimate.lineItems);
   const router = useRouter();
+
+  async function convertToInvoice() {
+    setConverting(true);
+    const res = await fetch("/api/invoices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: estimate.clientId,
+        projectId: estimate.projectId,
+        status: "draft",
+        notes: estimate.notes,
+        lineItems: estimate.lineItems.map(({ description, quantity, unitPrice }) => ({ description, quantity, unitPrice })),
+      }),
+    });
+    if (res.ok) {
+      // The estimate did its job — reflect that in its status
+      await fetch(`/api/estimates/${estimate.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "accepted" }),
+      });
+      const inv = await res.json();
+      router.push(`/invoices/${inv.id}`);
+      router.refresh();
+    }
+    setConverting(false);
+  }
 
   function updateItem(i: number, field: string, value: string | number) {
     setItems(items.map((item, idx) => idx === i ? { ...item, [field]: value } : item));
@@ -70,7 +98,12 @@ export function EstimateActions({ estimate }: { estimate: Estimate }) {
   const expiryDateStr = estimate.expiryDate ? new Date(estimate.expiryDate).toISOString().split("T")[0] : "";
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap justify-end">
+      {estimate.status !== "declined" && (
+        <Button size="sm" onClick={convertToInvoice} disabled={converting}>
+          <FileText className="h-3.5 w-3.5 mr-1" /> {converting ? "Converting…" : "Convert to Invoice"}
+        </Button>
+      )}
       <a
         href={`/api/estimates/${estimate.id}/pdf`}
         download

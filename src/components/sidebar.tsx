@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Users, FolderOpen, Clock, FileText, ClipboardList, LayoutDashboard, LogOut, BarChart2, Settings } from "lucide-react";
+import { Users, FolderOpen, Clock, FileText, ClipboardList, LayoutDashboard, LogOut, BarChart2, Settings, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
@@ -68,6 +68,18 @@ export function Sidebar() {
         ) : (
           <span className="font-semibold text-[15px] tracking-tight">{appName}</span>
         )}
+      </div>
+
+      {/* Search */}
+      <div className="px-3 pt-4">
+        <button
+          onClick={() => window.dispatchEvent(new Event("jt:open-palette"))}
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-[13.5px] font-medium text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors border border-dashed"
+        >
+          <Search className="h-4 w-4 shrink-0 opacity-70" />
+          Search
+          <kbd className="ml-auto text-[10px] border rounded px-1.5 py-0.5 opacity-70">⌘K</kbd>
+        </button>
       </div>
 
       {/* Nav */}

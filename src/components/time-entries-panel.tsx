@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { formatDate, formatDuration, formatCurrency } from "@/lib/format";
-import { Plus, Trash2, Play, Square, Receipt } from "lucide-react";
+import { Plus, Trash2, Play, Square, Receipt, Pencil, CheckCheck } from "lucide-react";
 
 type Entry = {
   id: number;
@@ -28,6 +28,9 @@ export function TimeEntriesPanel({
 }) {
   const [entries, setEntries] = useState(initialEntries);
   const [open, setOpen] = useState(false);
+  // editing holds the entry through the close animation; editOpen drives the dialog
+  const [editing, setEditing] = useState<Entry | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [running, setRunning] = useState<{ startTime: Date; description: string } | null>(null);
   const [runDesc, setRunDesc] = useState("");
 
@@ -76,6 +79,43 @@ export function TimeEntriesPanel({
     const entry = await res.json();
     setEntries([entry, ...entries]);
     setOpen(false);
+  }
+
+  async function saveEdit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editing) return;
+    const fd = new FormData(e.currentTarget);
+    const hours = Number(fd.get("hours") || 0);
+    const minutes = Number(fd.get("minutes") || 0);
+    const startTime = fd.get("date")
+      ? new Date((fd.get("date") as string) + "T00:00:00")
+      : new Date(editing.startTime);
+    const res = await fetch(`/api/time-entries/${editing.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        description: fd.get("description") || null,
+        startTime: startTime.toISOString(),
+        durationMin: hours * 60 + minutes,
+      }),
+    });
+    const updated = await res.json();
+    setEntries(entries.map((en) => (en.id === updated.id ? updated : en)));
+    setEditOpen(false);
+  }
+
+  async function markAllBilled() {
+    const unbilled = entries.filter((e) => !e.billed);
+    await Promise.all(
+      unbilled.map((e) =>
+        fetch(`/api/time-entries/${e.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ billed: true }),
+        })
+      )
+    );
+    setEntries(entries.map((e) => ({ ...e, billed: true })));
   }
 
   async function deleteEntry(id: number) {
@@ -159,6 +199,14 @@ export function TimeEntriesPanel({
                 <Button
                   size="icon"
                   variant="ghost"
+                  className="h-6 w-6 opacity-0 group-hover:opacity-100 shrink-0"
+                  onClick={() => { setEditing(entry); setEditOpen(true); }}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive shrink-0"
                   onClick={() => deleteEntry(entry.id)}
                 >
@@ -169,7 +217,7 @@ export function TimeEntriesPanel({
           </ul>
 
           {(billedMinutes > 0 || unbilledMinutes > 0) && (
-            <div className="flex gap-4 text-xs text-muted-foreground pt-1 border-t">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1 border-t">
               {unbilledMinutes > 0 && (
                 <span>
                   Unbilled: <span className="font-medium text-foreground">{formatDuration(unbilledMinutes)}</span>
@@ -181,6 +229,14 @@ export function TimeEntriesPanel({
                   Billed: <span className="font-medium text-foreground">{formatDuration(billedMinutes)}</span>
                   {hourlyRate ? ` (${formatCurrency((billedMinutes / 60) * hourlyRate)})` : ""}
                 </span>
+              )}
+              {unbilledMinutes > 0 && (
+                <button
+                  onClick={markAllBilled}
+                  className="ml-auto flex items-center gap-1 text-emerald-600 hover:underline"
+                >
+                  <CheckCheck className="h-3 w-3" /> Mark all billed
+                </button>
               )}
             </div>
           )}
@@ -214,6 +270,38 @@ export function TimeEntriesPanel({
               <Button type="submit">Save</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Edit Time Entry</DialogTitle></DialogHeader>
+          {editing && (
+            <form key={editing.id} onSubmit={saveEdit} className="space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="edit-description">Description</Label>
+                <Input id="edit-description" name="description" defaultValue={editing.description ?? ""} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="edit-date">Date</Label>
+                <Input id="edit-date" name="date" type="date" defaultValue={new Date(editing.startTime).toLocaleDateString("en-CA")} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="edit-hours">Hours</Label>
+                  <Input id="edit-hours" name="hours" type="number" min="0" max="24" defaultValue={Math.floor((editing.durationMin ?? 0) / 60)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="edit-minutes">Minutes</Label>
+                  <Input id="edit-minutes" name="minutes" type="number" min="0" max="59" defaultValue={(editing.durationMin ?? 0) % 60} />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+                <Button type="submit">Save</Button>
+              </DialogFooter>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>

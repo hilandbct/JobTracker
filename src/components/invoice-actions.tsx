@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, Pencil, Trash2, Plus, Link2 } from "lucide-react";
+import { Download, Pencil, Trash2, Plus, Link2, Send, CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -33,6 +33,16 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
   const [items, setItems] = useState<Omit<LineItem, "id">[]>(invoice.lineItems);
   const [linkCopied, setLinkCopied] = useState(false);
   const router = useRouter();
+
+  async function quickStatus(newStatus: string) {
+    await fetch(`/api/invoices/${invoice.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    setStatus(newStatus);
+    router.refresh();
+  }
 
   async function handleShareLink() {
     const res = await fetch(`/api/invoices/${invoice.id}/portal-token`, { method: "POST" });
@@ -84,7 +94,17 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
     : "";
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap justify-end">
+      {invoice.status === "draft" && (
+        <Button variant="outline" size="sm" onClick={() => quickStatus("sent")}>
+          <Send className="h-3.5 w-3.5 mr-1" /> Mark Sent
+        </Button>
+      )}
+      {invoice.status !== "paid" && (
+        <Button size="sm" onClick={() => quickStatus("paid")}>
+          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Mark Paid
+        </Button>
+      )}
       <a
         href={`/api/invoices/${invoice.id}/pdf`}
         download
