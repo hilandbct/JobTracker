@@ -43,6 +43,7 @@ model Project {
 
   client      Client      @relation(fields: [clientId], references: [id])
   timeEntries TimeEntry[]
+  materials   Material[]
   invoices    Invoice[]
   estimates   Estimate[]
   notes       Note[]
@@ -61,6 +62,19 @@ model TimeEntry {
   updatedAt   DateTime  @updatedAt
 
   project     Project   @relation(fields: [projectId], references: [id])
+}
+
+model Material {
+  id          Int      @id @default(autoincrement())
+  description String
+  quantity    Float    @default(1)
+  unitCost    Float
+  billed      Boolean  @default(false)
+  projectId   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     Project  @relation(fields: [projectId], references: [id])
 }
 
 model Invoice {

@@ -1,0 +1,11 @@
+CREATE TABLE "Material" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "description" TEXT NOT NULL,
+    "quantity" REAL NOT NULL DEFAULT 1,
+    "unitCost" REAL NOT NULL,
+    "billed" BOOLEAN NOT NULL DEFAULT false,
+    "projectId" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "Material_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
