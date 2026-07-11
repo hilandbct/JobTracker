@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Download, Pencil, Trash2, Plus, Link2, Send, CheckCircle2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
+import { fireConfetti } from "@/lib/confetti";
 
 type LineItem = { id: number; description: string; quantity: number; unitPrice: number };
 type Invoice = {
@@ -34,7 +35,7 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
   const [linkCopied, setLinkCopied] = useState(false);
   const router = useRouter();
 
-  async function quickStatus(newStatus: string) {
+  async function quickStatus(newStatus: string, origin?: { x: number; y: number }) {
     await fetch(`/api/invoices/${invoice.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -42,6 +43,9 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
     });
     setStatus(newStatus);
     router.refresh();
+    if (newStatus === "paid" && origin) {
+      fireConfetti(origin.x, origin.y);
+    }
   }
 
   async function handleShareLink() {
@@ -101,7 +105,13 @@ export function InvoiceActions({ invoice }: { invoice: Invoice }) {
         </Button>
       )}
       {invoice.status !== "paid" && (
-        <Button size="sm" onClick={() => quickStatus("paid")}>
+        <Button
+          size="sm"
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            quickStatus("paid", { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+          }}
+        >
           <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Mark Paid
         </Button>
       )}
