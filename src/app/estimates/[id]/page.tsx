@@ -42,7 +42,7 @@ export default async function EstimatePage({ params }: { params: Promise<{ id: s
         <EstimateActions estimate={estimate} />
       </div>
 
-      <div className="rounded-lg border p-6 space-y-6 bg-white">
+      <div className="rounded-lg border p-6 space-y-6 bg-card text-card-foreground">
         <div className="flex justify-between">
           <div>
             {showLogo

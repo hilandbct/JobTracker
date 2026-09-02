@@ -18,7 +18,7 @@ export default async function PortalInvoicePage({ params }: { params: Promise<{ 
   const total = invoice.lineItems.reduce((s, li) => s + li.quantity * li.unitPrice, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-10 px-4 text-gray-900">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border p-8 space-y-6">
         <div className="flex justify-between items-start">
           <div>
